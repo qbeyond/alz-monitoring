@@ -1,0 +1,8 @@
+resources
+| where ['type'] contains "domainServices"
+| extend expirationDate =  todatetime(properties.ldapsSettings.certificateNotAfter)
+| extend expireInDays = datetime_diff("day",expirationDate,now())
+| extend certificateThumbprint = properties.ldapsSettings.certificateThumbprint
+| extend publicCertificate = properties.ldapsSettings.publicCertificate
+| project id, expirationDate, certificateThumbprint, publicCertificate, expireInDays
+| extend state = case(expireInDays > (30), "Warning", expireInDays <= (7), "Critical", "Warning")
